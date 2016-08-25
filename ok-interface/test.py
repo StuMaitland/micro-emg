@@ -113,14 +113,18 @@ class DESTester:
             i *= 2
 
     def startRecording(self,RecordingState):
+        #Switches the board to a listening state
         if RecordingState:
             self.xem.ActivateTriggerIn(0x41, 0)
+        else:
+            self.xem.ActivateTriggerIn(0x41, 1)
 
     def isRunning(self):
         #Checks whether the board is currently evaluating a data block
         return self.xem.GetWireOutValue(0x22)
 
     def setContinuousRunMode(self,continuousMode):
+        #Set the continuous recording mode i.e. run whether the computer is ready for data or not
         if continuousMode:
             self.xem.SetWireInValue(0x00,0x02,0x02)
         else:
@@ -128,6 +132,8 @@ class DESTester:
         self.xem.UpdateWireIns()
 
     def setMaxTimeStep(self,maxTimeStep):
+        #Set the amount of time the board should listen for data over
+
         # I have no idea why you need to do this least/most sig bit but its in the source so
         maxTimeStepLsb = maxTimeStep & 0x0000ffff
         maxTimeStepMsb = maxTimeStep & 0xffff0000
@@ -138,7 +144,8 @@ class DESTester:
         self.xem.UpdateWireIns()
 
 
-    def readFromPipeOut(self,length,sampleLength):
+    def collectDataFromPipeOut(self, length, sampleLength):
+        #Starts the timer, waits until an amount of data is available on the USB buffer, then collects it
         self.setMaxTimeStep(sampleLength)
         buffer = bytearray("\x00" * length)
         self.startRecording(1)
@@ -149,6 +156,7 @@ class DESTester:
         return buffer
 
     def convertUSBWord(self,integers):
+        #Takes bytes and concatenates them into a new word
         multiple=len(integers)
         concatItems=0
         #Reverse the array for little endian format
@@ -239,7 +247,7 @@ if completed == 'False':
 
 des.setContinuousRunMode(False)
 
-buffer=des.readFromPipeOut(2048, samplesPerDataBlock)
+buffer=des.collectDataFromPipeOut(2048, samplesPerDataBlock)
 des.readDataBlock(buffer,samplesPerDataBlock,numDataStreams)
 
 
