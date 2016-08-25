@@ -2,17 +2,20 @@
 from __future__ import print_function
 import sys
 import Pyro4
+import time
 
 if sys.version_info < (3,0):
     input = raw_input
 
+#Pyro4.config.HOST = "mHealthfulsMini"
+#host = "mHealthfulsMini"
 
 @Pyro4.expose
 class Viewer(object):
     def quote(self, market, symbol, value):
         print("quote received")
         with open('{0}.txt'.format(symbol), 'a') as myfile:
-            myfile.write("{0}.{1}: {2}".format(market, symbol, value))
+            myfile.write("{0}: {1}.{2}: {3}".format(time.time(), market, symbol, value))
 
 
 def main():
@@ -26,6 +29,7 @@ def main():
         aggregator.view(viewer, symbols)
         print("Viewer listening on symbols", symbols)
         daemon.requestLoop()
+
 
 if __name__ == "__main__":
     main()

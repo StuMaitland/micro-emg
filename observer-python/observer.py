@@ -1,9 +1,8 @@
-from abc import ABCMeta, abstractmethod
+# Class definition for the (passive) observer in the observer design pattern
+class Observer:
 
+    def __init__(self,observable):
+        observable.register_observer(self)
 
-class Observer(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def update(self, *args, **kwargs):
-        pass
+    def notify(self, observable, *args, **kwargs):
+        print('Got', args, kwargs, 'From', observable)

@@ -1,25 +1,41 @@
+# Authors: Stuart Maitland
+# This is the basic server for the observer design pattern
+# Observers can be registered onto the list, and notified of new data
+# Modified from Python Remote Calls (Pyro4) http://pythonhosted.org/Pyro4/tutorials.html
 
+import Pyro4
+import observer
 
-class Observable(object):
-
+@Pyro4.expose
+class Observable:
     def __init__(self):
-        self.observers = []
+        self.__observers = []
 
-    def register(self, observer):
-        if not observer in self.observers:
-            self.observers.append(observer)
+    def register_observer(self, observer):
+        # Append a new observer onto the list
+        self.__observers.append(observer)
 
-    def unregister(self, observer):
-        if observer in self.observers:
-            self.observers.remove(observer)
+    def notify_observers(self, *args):
+        # Notify all listed observers of changes
+        for observer in self.__observers:
+            observer.notify(self, *args)
 
-    def unregister_all(self):
-        if self.observers:
-            del self.observers[:]
 
-    def update_observers(self, *args, **kwargs):
-        for observer in self.observers:
-            observer.update(*args, **kwargs)
+# Start Pyro daemon server
+def main():
+    Pyro4.Daemon.serveSimple(
+            {
+                Observable: "example.observable"
+            },
+            ns = False)
+
+if __name__=="__main__":
+    main()
+
+
+
+
+
 
 
 

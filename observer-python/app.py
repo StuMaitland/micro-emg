@@ -1,23 +1,19 @@
-from observable import Observable
 from observer import Observer
+#from observable import Observable
+import sys
 
-class AmericanStockMarket(Observer):
-    def update(self, *args, **kwargs):
-        print("American stock market received: {0}\n{1}".format(args, kwargs))
+import Pyro4
+import Pyro4.util
+
+sys.excepthook = Pyro4.util.excepthook
+
+# Connect to the observable (host) using this name server
+#observable = Observable()
+observable = Pyro4.Proxy("PYRO:example.observable@localhost:55646")
 
 
-class EuropeanStockMarket(Observer):
-    def update(self, *args, **kwargs):
-        print("European stock market received: {0}\n{1}".format(args, kwargs))
+# Remote procedure call to Observable
+observer1 = Observer(observable)
+observer2 = Observer(observable)
 
-
-if __name__ == "__main__":
-    observable = Observable()
-
-    american_observer = AmericanStockMarket()
-    observable.register(american_observer)
-
-    european_observer = EuropeanStockMarket()
-    observable.register(european_observer)
-
-    observable.update_observers('Market Rally', something='Hello World')
+observable.notify_observers('test')

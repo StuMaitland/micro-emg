@@ -22,7 +22,7 @@ class StockMarket(object):
         for symbol, mean in self.symbolmeans.items():
             #quotes[symbol] = round(random.normalvariate(mean, 20),0)
 
-            quotes[symbol] = '1'*1000000 #0 #Generate a random 1.25Mb bytearray
+            quotes[symbol] = '1'*5 #0 #Generate a random 1.25Mb bytearray
         end = time.time()
         elapsed = end - start
         print("new quotes generated for {0} in {1} seconds".format(self.name, elapsed))
@@ -41,8 +41,9 @@ class StockMarket(object):
     def run(self):
         def generate_symbols():
             while True:
-                #time.sleep(random.random())
+                starttime = time.time()
                 self.generate()
+                time.sleep(1.0 - ((time.time() - starttime) % 1.0)) # Run every second (minus the time for execution)
         thread = threading.Thread(target=generate_symbols)
         thread.setDaemon(True)
         thread.start()
@@ -54,16 +55,13 @@ def main():
         stocknames.append( ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4)) )
 
     nasdaq = StockMarket("NASDAQ", stocknames)
-    #newyork = StockMarket("NYSE", ["IBM", "HPQ", "BP"])
 
     with Pyro4.Daemon() as daemon:
         nasdaq_uri = daemon.register(nasdaq)
-        #newyork_uri = daemon.register(newyork)
         with Pyro4.locateNS() as ns:
+
             ns.register("example.stockmarket.nasdaq", nasdaq_uri)
-            #ns.register("example.stockmarket.newyork", newyork_uri)
         nasdaq.run()
-        #newyork.run()
         print("Stockmarkets running.")
         daemon.requestLoop()
 
