@@ -4,6 +4,7 @@ import string
 import time
 import numpy
 import struct
+import matplotlib.pyplot as plt
 
 
 class DESTester:
@@ -14,7 +15,7 @@ class DESTester:
         # Open the first device we find.
         self.xem = ok.okCFrontPanel()
         if (self.xem.NoError != self.xem.OpenBySerial("")):
-            print("A device could not be opened.  Is one connected?")
+            raise RuntimeError("A device could not be opened.  Is one connected, or in use by another process?")
             return (False)
 
         # Get some general information about the device.
@@ -159,79 +160,153 @@ class DESTester:
         # Enables or disables streams
         return None
 
+    def dataBlockSize(self,numDataStreams):
+        """
+        Calculates the expected size of a single sample of data
+        :param numDataStreams: number of data streams
+        :return: int
+        """
+        return(8+4+(numDataStreams*3*2)+(numDataStreams*32*2)+(numDataStreams*2)+(8*2)+2+2)
+
+    def setSampleFrequency(self, multiply, divide):
+        # Assuming a 100 MHz reference clock is provided to the FPGA, the programmable FPGA clock frequency
+        # is given by:
+        #
+        #       FPGA internal clock frequency = 100 MHz * (M/D) / 2
+        #
+        # M and D are "multiply" and "divide" integers used in the FPGA's digital clock manager (DCM) phase-
+        # locked loop (PLL) frequency synthesizer, and are subject to the following restrictions:
+        #
+        #                M must have a value in the range of 2 - 256
+        #                D must have a value in the range of 1 - 256
+        #                M/D must fall in the range of 0.05 - 3.33
+        #
+        # (See pages 85-86 of Xilinx document UG382 "Spartan-6 FPGA Clocking Resources" for more details.)
+        #
+        # This variable-frequency clock drives the state machine that controls all SPI communication
+        # with the RHD2000 chips.  A complete SPI cycle (consisting of one CS pulse and 16 SCLK pulses)
+        # takes 80 clock cycles.  The SCLK period is 4 clock cycles; the CS pulse is high for 14 clock
+        # cycles between commands.
+        #
+        # Rhythm samples all 32 channels and then executes 3 "auxiliary" commands that can be used to read
+        # and write from other registers on the chip, or to sample from the temperature sensor or auxiliary ADC
+        # inputs, for example.  Therefore, a complete cycle that samples from each amplifier channel takes
+        # 80 * (32 + 3) = 80 * 35 = 2800 clock cycles.
+        #
+        # So the per-channel sampling rate of each amplifier is 2800 times slower than the clock frequency.
+        #
+        # Based on these design choices, we can use the following values of M and D to generate the following
+        # useful amplifier sampling rates for electrophsyiological applications:
+        #
+        #   M    D     clkout frequency    per-channel sample rate     per-channel sample period
+        #  ---  ---    ----------------    -----------------------     -------------------------
+        #    7  125          2.80 MHz               1.00 kS/s                 1000.0 usec = 1.0 msec
+        #    7  100          3.50 MHz               1.25 kS/s                  800.0 usec
+        #   21  250          4.20 MHz               1.50 kS/s                  666.7 usec
+        #   14  125          5.60 MHz               2.00 kS/s                  500.0 usec
+        #   35  250          7.00 MHz               2.50 kS/s                  400.0 usec
+        #   21  125          8.40 MHz               3.00 kS/s                  333.3 usec
+        #   14   75          9.33 MHz               3.33 kS/s                  300.0 usec
+        #   28  125         11.20 MHz               4.00 kS/s                  250.0 usec
+        #    7   25         14.00 MHz               5.00 kS/s                  200.0 usec
+        #    7   20         17.50 MHz               6.25 kS/s                  160.0 usec
+        #  112  250         22.40 MHz               8.00 kS/s                  125.0 usec
+        #   14   25         28.00 MHz              10.00 kS/s                  100.0 usec
+        #    7   10         35.00 MHz              12.50 kS/s                   80.0 usec
+        #   21   25         42.00 MHz              15.00 kS/s                   66.7 usec
+        #   28   25         56.00 MHz              20.00 kS/s                   50.0 usec
+        #   35   25         70.00 MHz              25.00 kS/s                   40.0 usec
+        #   42   25         84.00 MHz              30.00 kS/s                   33.3 usec
+        #
+        # To set a new clock frequency, assert new values for M and D (e.g., using okWireIn modules) and
+        # pulse DCM_prog_trigger high (e.g., using an okTriggerIn module).  If this module is reset, it
+        # reverts to a per-channel sampling rate of 30.0 kS/s.
+
+        self.xem.SetWireInValue(0x03,(256*multiply + divide))
+        self.xem.UpdateWireIns()
+        self.xem.ActivateTriggerIn(0x40,0)
+
     def readDataBlock(self, buffer, samplesPerDataBlock, numDataStreams):
+        """
+        :param buffer: byte array object, the size of what you want to get
+        :param samplesPerDataBlock: number of samples expected
+        :param numDataStreams: int number of data streams
+        :return:
+        """
 
         # Takes raw data from the USB buffer on the board and converts it into something usable.
 
         # First we initialise some local variables
         timeStamp = []
-        auxiliaryData = numpy.zeros((1, 1, 1,))
-        amplifierData = numpy.zeros((1, 1, 1,))
-        boardAdcData = numpy.zeros((1, 1))
+        numChannels=32
+        auxiliaryData = numpy.zeros((100, 100, 100,))
+        amplifierData = numpy.zeros((numDataStreams, numChannels, samplesPerDataBlock))
+        boardAdcData = numpy.zeros((100, 100))
         ttlIn = []
         ttlOut = []
         index = 0
 
-        # The data is arranged in the following format on the board:
-        ## 8 byte header
-        ## 4 byte timestamp
-        ## n byte auxiliary data
-        ## n byte amplifier data (the one we want)
-        ## n byte filler word
-        ## 128 byte ADC5662 data
-        ## 4 byte ttlIn + ttOut data
+        #   The data is arranged in the following format on the board:
+        #       8 byte header
+        #       4 byte timestamp
+        #       n byte auxiliary data
+        #       n byte amplifier data (the one we want)
+        #       n byte filler word
+        #       128 byte ADC5662 data
+        #       4 byte ttlIn + ttOut data
 
         for sample in range(0, samplesPerDataBlock):
+            print("Sample: {}. Index: {}".format(sample,index))
 
             # OK, there's a lot going on on this line.
             # Unpack the byte array, coerced into a bytes object
             # < means little endian, Q indicates unsigned long long
             # By default returns a tuple, so just get the first bit.
             # Reference: https://docs.python.org/3/library/struct.html
-            header=struct.unpack("<Q",bytes(buffer[index:index+8]))[0]
+            header = struct.unpack("<Q", bytes(buffer[index:index + 8]))[0]
             # Check the first 8 bytes to match the RHD2000 magic header word
             if header != 0xc691199927021942:
-                raise SyntaxError("Error in readDataBlock: Incorrect header")
+                raise SyntaxError("Error in readDataBlock: Incorrect header: {0}".format(header))
             index += 8
 
             # Read the timestamp
-            #This time it's L- unsigned long
-
-            timeStamp.append(struct.unpack("<L",buffer[index:index+4])[0])
+            # This time it's L- unsigned long
+            timeStamp.append(struct.unpack("<L", buffer[index:index + 4])[0])
+            print("TimeStamp: {0}".format(timeStamp[sample]))
             index += 4
 
             # Read auxiliary input
             for channel in range(0, 3):
                 for stream in range(0, numDataStreams):
                     # The rest are H, unsigned short
-                    auxiliaryData[stream][channel][sample] = struct.unpack("<H",buffer[index:index+2])[0]
+                    auxiliaryData[stream][channel][sample] = struct.unpack("<H", buffer[index:index + 2])[0]
                     index += 2
                     # Each sample is represented by two bytes
 
             # Read amplifier channels- this is the one we really want
             for channel in range(0, 32):
                 for stream in range(0, numDataStreams):
-                    amplifierData[stream][channel][sample] = struct.unpack("<H",buffer[index:index+2])[0]
+                    amplifierData[stream][channel][sample] = struct.unpack("<H", buffer[index:index + 2])[0]
                     index += 2
             # Skip 36th filler word in each data stream
             index += 2 * numDataStreams
 
             # Read from AD5662 ADCs
             for i in range(0, 8):
-
-                boardAdcData[i][sample] = struct.unpack("<H",buffer[index:index+2])[0]
+                boardAdcData[i][sample] = struct.unpack("<H", buffer[index:index + 2])[0]
                 index += 2
 
             # Read TTL input and output values
-            ttlIn[sample] = struct.unpack("<H",buffer[index:index+2])[0]
+            ttlIn.append(struct.unpack("<H", buffer[index:index + 2])[0])
             index += 2
-            ttlOut[sample] = struct.unpack("<H",buffer[index:index+2])[0]
+            ttlOut.append(struct.unpack("<H", buffer[index:index + 2])[0])
             index += 2
 
+        return amplifierData
 
 # User-modified variables
 samplesPerDataBlock = 60
-numDataStreams = 5
+numDataStreams = 4
 
 # Main code
 print("------ DES Encrypt/Decrypt Tester in Python ------")
@@ -245,8 +320,14 @@ if completed == 'False':
 
 des.setContinuousRunMode(False)
 
-buffer = des.collectDataFromPipeOut(2048, samplesPerDataBlock)
-des.readDataBlock(buffer, samplesPerDataBlock, numDataStreams)
+plt.ion()
+
+while 1:
+    buffer = des.collectDataFromPipeOut(des.dataBlockSize(numDataStreams)*samplesPerDataBlock, samplesPerDataBlock)
+    amplifierData= des.readDataBlock(buffer, samplesPerDataBlock/10, numDataStreams)
+    plt.clf()
+    plt.plot(amplifierData[0][1][:])
+    plt.pause(0.001)
 
 print("ready for input")
 print("")
