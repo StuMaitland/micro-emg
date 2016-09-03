@@ -5,6 +5,7 @@ import time
 import numpy
 import struct
 import matplotlib.pyplot as plt
+import collections
 
 
 class DESTester:
@@ -41,6 +42,7 @@ class DESTester:
             return (False)
 
         print("FrontPanel support is available.")
+        self.resetBoard()
         return (True)
 
     def setKey(self, key):
@@ -135,10 +137,12 @@ class DESTester:
 
     def setMaxTimeStep(self, maxTimeStep):
         # Set the amount of time the board should listen for data over
-
+        # timesteps are in intervals of 10, so lets multiply it by that amount
+        maxTimeStep*=10
         # I have no idea why you need to do this least/most sig bit but its in the source so
         maxTimeStepLsb = maxTimeStep & 0x0000ffff
         maxTimeStepMsb = maxTimeStep & 0xffff0000
+
 
         # These are just the magic addresses for switching on the timers
         self.xem.SetWireInValue(0x01, maxTimeStepLsb)
@@ -226,6 +230,12 @@ class DESTester:
         self.xem.UpdateWireIns()
         self.xem.ActivateTriggerIn(0x40,0)
 
+    def resetBoard(self):
+        self.xem.SetWireInValue(0x00,0x01,0x01)
+        self.xem.UpdateWireIns()
+        self.xem.SetWireInValue(0x00,0x00,0x01)
+        self.xem.UpdateWireIns()
+
     def readDataBlock(self, buffer, samplesPerDataBlock, numDataStreams):
         """
         :param buffer: byte array object, the size of what you want to get
@@ -246,7 +256,7 @@ class DESTester:
         ttlOut = []
         index = 0
 
-        #   The data is arranged in the following format on the board:
+        #   The data is arranged in the following format on the USB buffer:
         #       8 byte header
         #       4 byte timestamp
         #       n byte auxiliary data
@@ -305,7 +315,7 @@ class DESTester:
         return amplifierData
 
 # User-modified variables
-samplesPerDataBlock = 60
+samplesPerDataBlock = 50
 numDataStreams = 4
 
 # Main code
@@ -320,14 +330,33 @@ if completed == 'False':
 
 des.setContinuousRunMode(False)
 
+
+
+#Set sample frequency to 20KS/s
+#des.setSampleFrequency(42,45)
+dataToPlot= [None]*100
+
+plt.axis([0,1000,8000,20000])
 plt.ion()
 
-while 1:
-    buffer = des.collectDataFromPipeOut(des.dataBlockSize(numDataStreams)*samplesPerDataBlock, samplesPerDataBlock)
-    amplifierData= des.readDataBlock(buffer, samplesPerDataBlock/10, numDataStreams)
-    plt.clf()
-    plt.plot(amplifierData[0][1][:])
-    plt.pause(0.001)
+print("")
+
+while True:
+    try:
+        #Get the bytes from the buffer
+        buffer = des.collectDataFromPipeOut(des.dataBlockSize(numDataStreams)*samplesPerDataBlock, samplesPerDataBlock)
+        # Process into a data block
+        amplifierData= des.readDataBlock(buffer, samplesPerDataBlock, numDataStreams)
+
+        dataToPlot=dataToPlot[5:]
+        dataToPlot.extend(amplifierData[0][1][:])
+        #Plot the data
+        #dataToPlot.append(amplifierData[0][1][:])
+
+        plt.plot(dataToPlot)
+        plt.waitforbuttonpress()
+    except KeyboardInterrupt:
+        break
 
 print("ready for input")
 print("")
