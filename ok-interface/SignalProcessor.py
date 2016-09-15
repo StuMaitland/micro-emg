@@ -1,7 +1,7 @@
 import ok
 import time
 import numpy
-import struct
+from struct import unpack
 from SignalResponse import SignalResponse
 
 class DESTester:
@@ -280,7 +280,7 @@ class DESTester:
         # < means little endian, Q indicates unsigned long long
         # By default returns a signed tuple, so just get the first element.
         # Reference: https://docs.python.org/3/library/struct.html
-        parsedHeader=struct.unpack("<Q", bytes(header))[0]
+        parsedHeader = numpy.frombuffer(bytes(header), numpy.dtype("<Q"))
         return (parsedHeader==0xc691199927021942)
 
     def readDataBlock(self, buffer, samplesPerDataBlock, numDataStreams):
@@ -292,15 +292,16 @@ class DESTester:
         :return:
         """
         # First we initialise some local variables
-        timeStamp = []
         numChannels=32
+        index = 0
+        timeStamp = []
         auxiliaryData = numpy.zeros((100, 100, 100,))
         totalUnsorted=[]
         amplifierData = numpy.zeros((numDataStreams, numChannels, samplesPerDataBlock))
         boardAdcData = numpy.zeros((100, 100))
         ttlIn = []
         ttlOut = []
-        index = 0
+
 
         #   The data is arranged in the following format on the board:
         #       8 byte header
@@ -311,6 +312,7 @@ class DESTester:
         #       128 byte ADC5662 data
         #       4 byte ttlIn + ttOut data
 
+
         for sample in xrange(0, samplesPerDataBlock):
             #print("Sample: {}. Index: {}".format(sample,index))
 
@@ -320,44 +322,51 @@ class DESTester:
                 raise SyntaxError("Error in readDataBlock: Incorrect header: {0}".format(buffer[index:index+8]))
             index += 8
 
+
             # Read the timestamp
             # This time it's L- unsigned long
-            timeStamp.append(struct.unpack("<L", buffer[index:index + 4])[0])
+            #timeStamp.append(unpack("<L", buffer[index:index + 4])[0])
             index += 4
 
             # Read auxiliary input
-            for channel in xrange(0, 3):
-                for stream in xrange(0, numDataStreams):
+            #for channel in xrange(0, 3):
+                #for stream in xrange(0, numDataStreams):
                     # The rest are H, unsigned short
-                    auxiliaryData[stream][channel][sample] = struct.unpack("<H", buffer[index:index + 2])[0]
-                    index += 2
+                    #auxiliaryData[stream][channel][sample] = unpack("<H", buffer[index:index + 2])[0]
+                    #index += 2
                     # Each sample is represented by two bytes
+            index += 6 * numDataStreams
 
             #unsorted = []
             #for i in range(0,self.dataBlockSize(numDataStreams)):
             #    try:
-            #        unsorted.append(struct.unpack("<H",buffer[index+i:index+i+2])[0])
+            #        unsorted.append(unpack("<H",buffer[index+i:index+i+2])[0])
             #    except:
-            #        print("")
+                    #print("")
             #totalUnsorted.append(unsorted)
 
             # Read amplifier channels- this is the one we really want
+            numpifiedData= numpy.frombuffer(buffer[index:index+(2*numChannels*numDataStreams)],numpy.dtype("<H"))
+
             for channel in xrange(0, numChannels):
                 for stream in xrange(0, numDataStreams):
-                    amplifierData[stream][channel][sample] = struct.unpack("<H", buffer[index:index + 2])[0]
-                    index += 2
+                    amplifierData[stream][channel][sample] = numpifiedData[stream*channel]
+                    #amplifierData[stream][channel][sample] = unpack("<H", buffer[index:index + 2])[0]
+            index += 2*numChannels*numDataStreams
             # Skip 36th filler word in each data stream
+
             index += 2 * numDataStreams
 
             # Read from AD5662 ADCs
-            for i in xrange(0, 8):
-                boardAdcData[i][sample] = struct.unpack("<H", buffer[index:index + 2])[0]
-                index += 2
+            #for i in xrange(0, 8):
+                #boardAdcData[i][sample] = unpack("<H", buffer[index:index + 2])[0]
+                #index += 2
+            index+=2*8
 
             # Read TTL input and output values
-            ttlIn.append(struct.unpack("<H", buffer[index:index + 2])[0])
+            #ttlIn.append(unpack("<H", buffer[index:index + 2])[0])
             index += 2
-            ttlOut.append(struct.unpack("<H", buffer[index:index + 2])[0])
+            #ttlOut.append(unpack("<H", buffer[index:index + 2])[0])
             index += 2
 
             #Construct signal response object

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 # User-modified variables
-sampleLength = 50
+sampleLength = 100
 numDataStreams = 0
 
 # Main code
@@ -35,7 +35,6 @@ plt.show()
 plt.ylim([7500,9000])
 plt.xlim([0,len(queue)])
 
-timeit = time.clock()
 for t in xrange(0,50):
 
     #Collect data from the USB Buffer- supply size in bytes and duration of sample in time interval
@@ -49,15 +48,14 @@ for t in xrange(0,50):
 
     queue[:-sampleLength] = queue[sampleLength:]
     queue[-sampleLength:] = voltData
-    #plt.pause(0.001)
-    #ln.set_xdata(range(len(queue)))
-    #ln.set_ydata(queue)
-    #plt.draw()
+    plt.pause(0.001)
+    ln.set_xdata(range(len(queue)))
+    ln.set_ydata(queue)
+    plt.draw()
 
 
 #pickle.dump(archive,open("test.pickle","wb"))
 
-thetime = time.clock() - timeit
 print(thetime)
 
 def dontdothis():
