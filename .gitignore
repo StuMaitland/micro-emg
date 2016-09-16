@@ -23,3 +23,17 @@ observer-python/.idea/observer-python.iml
 observer-python/.idea/observer-python.iml
 
 observer-python/.idea/observer-python.iml
+
+.DS_Store
+
+*.pptx
+
+/ok-interface/recordings/*
+
+ok-interface/test.lol
+
+ok-interface/test.pickle
+
+ok-interface/config.h
+
+ok-interface/pycallgraph.png
