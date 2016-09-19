@@ -272,6 +272,27 @@ class DESTester:
         self.xem.UpdateWireIns()
         self.xem.ActivateTriggerIn(0x40,0)
 
+    def setCableDelay(self, port, delay):
+        """
+        Sets the delay for sampling the MISO line on SPI ports in integer clock steps (1/2800 of a per-channel
+        sampling period.
+        Note: Set cable delay after sample rate is changed
+        :param port: PortABCD of connected SPI port
+        :param delay: cable delay in integer clock steps (0:15)
+        :return:
+        """
+        #Delay must be between 0 and 15
+        delay=max(min(15, delay), 0)
+        shift={
+            "PortA":0,
+            "PortB":4,
+            "PortC":8,
+            "PortD":12
+        }
+        bitshift=shift[port]
+        self.xem.SetWireInValue("0x04",delay<<shift[port],0x000f<<shift[port])
+        self.xem.UpdateWireIns()
+
     def checkHeader(self,header):
         #Confirms the first 64 bits of the USB header against the Rhythm magic number to verify sync
 
