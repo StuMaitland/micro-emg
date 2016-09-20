@@ -18,15 +18,22 @@ if completed == 'False':
     exit
 
 des.enableDataStream(0)
-numDataStreams += 1
-des.setDataSource(0, 0)
+des.setDataSource(0,0)
+numDataStreams+=1
+des.enableDataStream(1)
+des.setDataSource(1,1)
+numDataStreams+=1
+
+
 des.setContinuousRunMode(False)
 #Set sample frequency to 20KS/s
 des.setSampleFrequency(28,25)
+des.setCableDelay("PortA",5)
 
+numChannels=32*numDataStreams
 queue = [None] * 1000
 dataSize = des.dataBlockSize(numDataStreams) * sampleLength
-archive = [[None] for i in range(32)]
+archive = [[None] for i in range(numChannels)]
 
 bufferStore = []
 
@@ -44,7 +51,7 @@ for t in xrange(0, 5000):
     signal = des.readDataBlock(buffer, sampleLength, numDataStreams)
 
     voltData=des.bytesToVolts(signal.amplifier[0][2][:])
-
+    des.resetBuffer()
     queue[:-sampleLength] = queue[sampleLength:]
     queue[-sampleLength:] = voltData
 

@@ -184,8 +184,8 @@ class DESTester:
         self.xem.UpdateWireIns()
 
     def setDataSource(self,stream,boardDataSource):
-        #Links a data source (port A1,A2,B1,B2) to one of 8 available USB data streams
-        #Data source is 0:A1,1:A2,2:B1,3:B2
+        #Links a data source (port A1,A2,B1,B2...D2) to one of 8 available USB data streams
+        #Data source is 0:A1,1:A2,2:B1,3:B2,...,7:D2
 
         #if the datastream is higher than 4 we select a different wire in for it
         highFour=(stream*4)//16
@@ -193,6 +193,7 @@ class DESTester:
         wireIn=0x12+highFour
 
         self.xem.SetWireInValue(wireIn,boardDataSource<< bitshift,0x000f <<bitshift)
+        self.xem.UpdateWireIns()
 
 
     def dataBlockSize(self,numDataStreams):
@@ -289,8 +290,7 @@ class DESTester:
             "PortC":8,
             "PortD":12
         }
-        bitshift=shift[port]
-        self.xem.SetWireInValue("0x04",delay<<shift[port],0x000f<<shift[port])
+        self.xem.SetWireInValue(0x04,delay << shift[port],0x000f << shift[port])
         self.xem.UpdateWireIns()
 
     def checkHeader(self,header):
@@ -367,11 +367,11 @@ class DESTester:
             #totalUnsorted.append(unsorted)
 
             # Read amplifier channels- this is the one we really want
-            numpifiedData= numpy.frombuffer(buffer[index:index+(2*numChannels*numDataStreams)],numpy.dtype("<H"))
-
+            numpifiedData= numpy.frombuffer(buffer[index:index+(2 * numChannels*numDataStreams)],numpy.dtype("<H"))
+            numpifiedData=numpy.reshape(numpifiedData,(-1,2)).T
             for channel in xrange(0, numChannels):
                 for stream in xrange(0, numDataStreams):
-                    amplifierData[stream][channel][sample] = numpifiedData[stream*channel]
+                    amplifierData[stream][channel][sample] = numpifiedData[stream][channel]
                     #amplifierData[stream][channel][sample] = unpack("<H", buffer[index:index + 2])[0]
             index += 2*numChannels*numDataStreams
             # Skip 36th filler word in each data stream

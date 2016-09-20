@@ -28,7 +28,7 @@ observer-python/.idea/observer-python.iml
 
 *.pptx
 
-/ok-interface/recordings/*
+*.csv
 
 ok-interface/test.lol
 
