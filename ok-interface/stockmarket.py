@@ -19,18 +19,13 @@ class StockMarket(object):
             self.symbolmeans[symbol] = random.uniform(20, 200)
         self.aggregators = []
 
-    def generate(self, sampleLength, numDataStreams):
-        des = sp()
+    def generate(self, sampleLength, numDataStreams,des):
         quotes = {}
-        start = time.time()
         buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
         des.resetBuffer()
 
-
-        quotes[0]=buffer
-        end = time.time()
-        elapsed = end - start
-        print("new quotes generated for {0} in {1} seconds: {2}".format(self.name, elapsed,buffer[0:50]))
+        quotes['0']=buffer
+        #print("new quotes generated for {0} in {1} seconds: {2}".format(self.name, elapsed,buffer[0:50]))
         for aggregator in self.aggregators:
             aggregator.quotes(self.name, quotes)
 
@@ -43,12 +38,17 @@ class StockMarket(object):
     def symbols(self):
         return list(self.symbolmeans.keys())
 
-    def run(self, sampleLength, numDataStreams):
+    def run(self, sampleLength, numDataStreams,des):
         def generate_symbols():
-            while True:
+            startTime=time.clock()
+            timer=0
+            while timer<20000:
+                timer+=1*sampleLength
                 starttime = time.time()
-                self.generate(sampleLength, numDataStreams)
-                time.sleep(1.0 - ((time.time() - starttime) % 1.0))  # Run every second (minus the time for execution)
+                self.generate(sampleLength, numDataStreams,des)
+                # Run every second (minus the time for execution)
+                #time.sleep(0.001 - ((time.time() - starttime) % 1.0))
+            print(time.clock()-startTime)
 
         thread = threading.Thread(target=generate_symbols)
         thread.setDaemon(True)
@@ -97,7 +97,7 @@ def main():
         nasdaq_uri = daemon.register(nasdaq)
         with Pyro4.locateNS() as ns:
             ns.register("example.stockmarket.nasdaq", nasdaq_uri)
-        nasdaq.run(sampleLength, numDataStreams)
+        nasdaq.run(sampleLength, numDataStreams,des)
         print("Stockmarkets running.")
         daemon.requestLoop()
 

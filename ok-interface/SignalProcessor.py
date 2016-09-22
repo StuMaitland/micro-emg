@@ -6,6 +6,7 @@ from SignalResponse import SignalResponse
 
 class DESTester:
     def __init__(self):
+        self.xem = ok.okCFrontPanel()
         return
 
     def initializeDevice(self):
