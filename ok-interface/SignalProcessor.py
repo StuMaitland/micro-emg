@@ -1,8 +1,14 @@
+# Intan/Opal Kelly Python Interface Module
+# By Stuart Maitland
+
+# Provides an interface to the Intan RHD2000 board
+# Extends the compiled/ automatically generated xem module provided by Opal Kelly, built in C++
+
+
 import ok
-import time
 import numpy
-from struct import unpack
 from SignalResponse import SignalResponse
+from ok import okCFrontPanel as xem
 
 class DESTester:
     def __init__(self):
@@ -39,7 +45,6 @@ class DESTester:
             return (False)
 
         print("FrontPanel support is available.")
-
 
         self.resetBuffer()
         return (True)
@@ -128,8 +133,6 @@ class DESTester:
                 i+=interval
                 #time.sleep(0.1)
         self.setLight(0)
-
-
 
     def startRecording(self):
         # Initiate SPI dad acquisition
