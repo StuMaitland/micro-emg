@@ -1,5 +1,4 @@
-import matplotlib.pyplot as plt
-import SignalProcessor
+import sp as SignalProcessor
 import numpy as np
 import pickle
 import time
@@ -44,22 +43,24 @@ plt.show()
 plt.ylim([8000,8200])
 plt.xlim([0,len(queue)])
 
-for t in xrange(0, 5000):
-    # Collect data from the USB Buffer- supply size in bytes and duration of sample in time interval
-    buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
 
-    signal = des.readDataBlock(buffer, sampleLength, numDataStreams)
+for stream in xrange(0,2):
+    for channel in xrange(0,32):
+        for t in xrange(0, 50):
+            # Collect data from the USB Buffer- supply size in bytes and duration of sample in time interval
+            buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
 
-    voltData=des.bytesToVolts(signal.amplifier[0][2][:])
-    des.resetBuffer()
-    queue[:-sampleLength] = queue[sampleLength:]
-    queue[-sampleLength:] = voltData
+            signal = des.readDataBlock(buffer, sampleLength, numDataStreams)
+            voltData=des.bytesToVolts(signal.amplifier[stream][channel][:])
+            des.resetBuffer()
+            queue[:-sampleLength] = queue[sampleLength:]
+            queue[-sampleLength:] = voltData
 
-    plt.pause(0.001)
-    ln.set_xdata(range(len(queue)))
-    ln.set_ydata(queue)
-    plt.draw()
-    plt.show()
+            plt.pause(0.001)
+            ln.set_xdata(range(len(queue)))
+            ln.set_ydata(queue)
+            plt.draw()
+            plt.show()
 
 
 

@@ -23,8 +23,9 @@ class StockMarket(object):
         quotes = {}
         buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
         des.resetBuffer()
-
-        quotes['0']=buffer
+        parsed=des.readDataBlock(buffer,sampleLength,numDataStreams).amplifier[0][2]
+        print(parsed)
+        quotes['0']=str(parsed)
         #print("new quotes generated for {0} in {1} seconds: {2}".format(self.name, elapsed,buffer[0:50]))
         for aggregator in self.aggregators:
             aggregator.quotes(self.name, quotes)
@@ -42,13 +43,11 @@ class StockMarket(object):
         def generate_symbols():
             startTime=time.clock()
             timer=0
-            while timer<20000:
-                timer+=1*sampleLength
+            while 1:
                 starttime = time.time()
                 self.generate(sampleLength, numDataStreams,des)
                 # Run every second (minus the time for execution)
                 #time.sleep(0.001 - ((time.time() - starttime) % 1.0))
-            print(time.clock()-startTime)
 
         thread = threading.Thread(target=generate_symbols)
         thread.setDaemon(True)

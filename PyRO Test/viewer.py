@@ -13,9 +13,10 @@ if sys.version_info < (3,0):
 @Pyro4.expose
 class Viewer(object):
     def quote(self, market, symbol, value):
-        print("quote received")
+        print("quote received: {}".format(value))
         with open('{0}.txt'.format(symbol), 'a') as myfile:
             myfile.write("{0}: {1}.{2}: {3}".format(time.time(), market, symbol, value))
+
 
 
 def main():

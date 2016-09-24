@@ -8,25 +8,27 @@
 import ok
 import numpy
 from SignalResponse import SignalResponse
-from ok import okCFrontPanel as xem
+import os
+import math
 
 class DESTester:
     def __init__(self):
         self.xem = ok.okCFrontPanel()
+        #self.initializeDevice()
         return
 
     def initializeDevice(self):
         # Open the first device we find.
-        self.xem = ok.okCFrontPanel()
-        if (self.xem.NoError != self.xem.OpenBySerial("")):
+        if self.xem.NoError != self.xem.OpenBySerial(""):
             raise RuntimeError("A device could not be opened.  Is one connected, or in use by another process?")
             return (False)
 
         # Get some general information about the device.
         self.devInfo = ok.okTDeviceInfo()
-        if (self.xem.NoError != self.xem.GetDeviceInfo(self.devInfo)):
+
+        if self.xem.NoError != self.xem.GetDeviceInfo(self.devInfo):
             print("Unable to retrieve device information.")
-            return (False)
+            return False
         print("         Product: " + self.devInfo.productName)
         print("Firmware version: %d.%d" % (self.devInfo.deviceMajorVersion, self.devInfo.deviceMinorVersion))
         print("   Serial Number: %s" % self.devInfo.serialNumber)
@@ -63,6 +65,16 @@ class DESTester:
         self.xem.SetWireInValue(0x10, 0x00, 0x01)
         self.xem.UpdateWireIns()
         self.LightPulse([255,0,255])
+
+    def resetBoard(self):
+        """
+        Resets the FPGA- clears all auxiliary command RAM banks, clears USB FIFO, resets sampling rate to 30Ks/S
+        :return:
+        """
+        self.xem.SetWireInValue(0x00,0x01,0x01)
+        self.xem.UpdateWireIns()
+        self.xem.SetWireInValue(0x00,0x00,0x01)
+        self.xem.UpdateWireIns()
 
     def encryptDecrypt(self, infile, outfile):
         fileIn = open(infile, "rb")
@@ -199,7 +211,6 @@ class DESTester:
         self.xem.SetWireInValue(wireIn,boardDataSource<< bitshift,0x000f <<bitshift)
         self.xem.UpdateWireIns()
 
-
     def dataBlockSize(self,numDataStreams):
         """
         Calculates the expected size in bytes of a single sample of data
@@ -217,6 +228,52 @@ class DESTester:
         :return: int/array microvolts
         """
         return 0.195 * bytes
+
+    def selectDacDataChannel(self,dacChannel,dataChannel):
+        """
+        Assigns a particular data channel to DAC output
+        :param dacChannel: 0-7 DAC channel index
+        :param dataChannel: 0-31 data channel index
+        :return:
+        """
+        if dacChannel>7:
+            raise Exception('Wrong dac channel number')
+        elif dataChannel>31:
+            raise Exception('Wrong data channel number')
+        self.xem.SetWireInValue(0x16+dacChannel,dataChannel<<0,0x001f)
+        self.xem.UpdateWireIns()
+
+    def enableDacHighpassFilter(self,enable):
+        """
+        Enables the FPGA implemented high-pass filters associated with DAC output
+        on USB interface board. These one-pole filters can be used to record wideband neural data
+        while viewing only spikes without LFPs on the DAC outputs, for example. This is useful when
+        using the low-latency FPGA thresholds to detect spikes and produce digital pulses on outputs
+        :param enable: boolean
+        :return: None
+        """
+        self.xem.SetWireInValue(0x1f,enable)
+        self.xem.UpdateWireIns()
+        self.xem.ActivateTriggerIn(0x44,0)
+
+    def setDacHighpassFilter(self,cutoff,sampleRate):
+        """
+        Set cutoff frequency in Hz for FPGA implemented high-pass filters
+        :param cutoff: integer frequency (Hz)
+        :return: None
+        """
+        pi=3.1415926535897
+
+        b= 1.0 - numpy.exp(-2.0 * pi * cutoff / sampleRate)
+
+        filterCoefficient = int(numpy.floor(65536.0 * b + 0.5))
+
+        # filter coefficient must be between 1 and 65535
+        filterCoefficient = max(min(65535, filterCoefficient), 1)
+
+        self.xem.SetWireInValue(0x1f,filterCoefficient)
+        self.xem.UpdateWireIns()
+        self.xem.ActivateTriggerIn(0x44,1)
 
     def setSampleFrequency(self, multiply, divide):
         """

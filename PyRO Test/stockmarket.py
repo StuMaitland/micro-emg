@@ -64,7 +64,7 @@ def main():
     print("------ DES Encrypt/Decrypt Tester in Python ------")
     des = sp()
 
-    completed = des.initializeDevice()
+    completed = des.initializeDevice
     if completed == 'False':
         exit
 
