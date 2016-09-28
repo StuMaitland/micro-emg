@@ -24,6 +24,9 @@ class Aggregator(object):
             for viewer, symbols in self.viewers.items():
                 if symbol in symbols:
                     viewer.quote(market, symbol, value)
+                    #viewer.realTimePlot()
+
+
 
 
 def main():

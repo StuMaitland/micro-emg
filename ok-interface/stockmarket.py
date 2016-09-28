@@ -6,7 +6,7 @@ import time
 import Pyro4
 import os
 import string
-from SignalProcessor import DESTester as sp
+from sp import DESTester as sp
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -23,9 +23,14 @@ class StockMarket(object):
         quotes = {}
         buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
         des.resetBuffer()
-        parsed=des.readDataBlock(buffer,sampleLength,numDataStreams).amplifier[0][2]
-        print(parsed)
-        quotes['0']=str(parsed)
+        print("data generated")
+
+        parsed=des.readDataBlock(buffer,sampleLength,numDataStreams)
+        #print(parsed)
+        listed=parsed.amplifier.tolist()
+        quotes.update(dict(zip(xrange(0,32),listed[0][0:32])))
+        quotes.update(dict(zip(xrange(32, 64), listed[1][0:32])))
+
         #print("new quotes generated for {0} in {1} seconds: {2}".format(self.name, elapsed,buffer[0:50]))
         for aggregator in self.aggregators:
             aggregator.quotes(self.name, quotes)
@@ -87,8 +92,8 @@ def main():
     dataSize = des.dataBlockSize(numDataStreams) * sampleLength
 
     stocknames = []
-    for i in range(1):
-        stocknames.append(str(i))
+    for i in range(numChannels*numDataStreams):
+        stocknames.append(i)
 
     nasdaq = StockMarket("NASDAQ", stocknames)
 

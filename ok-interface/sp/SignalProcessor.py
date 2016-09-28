@@ -354,7 +354,8 @@ class DESTester:
         self.xem.SetWireInValue(0x04,delay << shift[port],0x000f << shift[port])
         self.xem.UpdateWireIns()
 
-    def checkHeader(self,header):
+    @staticmethod
+    def checkHeader(header):
         #Confirms the first 64 bits of the USB header against the Rhythm magic number to verify sync
 
         # OK, there's a lot going on on this line.
@@ -365,7 +366,8 @@ class DESTester:
         parsedHeader = numpy.frombuffer(bytes(header), numpy.dtype("<Q"))
         return (parsedHeader==0xc691199927021942)
 
-    def readDataBlock(self, buffer, samplesPerDataBlock, numDataStreams):
+    @staticmethod
+    def readDataBlock(buffer, samplesPerDataBlock, numDataStreams):
         """
         Takes raw data from the USB buffer on the board and converts it into something usable.
         :param buffer: byte array object, the size of what you want to get
@@ -399,7 +401,7 @@ class DESTester:
             #print("Sample: {}. Index: {}".format(sample,index))
 
             # Check the first 8 bytes to match the RHD2000 magic header word
-            if not self.checkHeader(buffer[index:index+8]):
+            if not DESTester.checkHeader(buffer[index:index+8]):
                 print("")
                 raise SyntaxError("Error in readDataBlock: Incorrect header: {0}".format(buffer[index:index+8]))
             index += 8
