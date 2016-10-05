@@ -2,6 +2,7 @@
 from __future__ import print_function
 import Pyro4
 
+from Pyro4 import Future
 
 @Pyro4.expose
 class Aggregator(object):
@@ -23,7 +24,9 @@ class Aggregator(object):
         for symbol, value in stockquotes.items():
             for viewer, symbols in self.viewers.items():
                 if symbol in symbols:
-                    viewer.quote(market, symbol, value)
+                    #viewer.quote(market, symbol, value)
+                    futurecall=Future(viewer.quote)
+                    futurecall(market, symbol, value)
                     #viewer.realTimePlot()
 
 

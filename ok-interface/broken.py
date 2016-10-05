@@ -13,7 +13,7 @@ if sys.version_info < (3,0):
 #host = "mHealthfulsMini"
 
 @Pyro4.expose
-class Viewer(object):
+class Viewer2(object):
 
     def __init__(self):
         #self.queue=[None]*1000
@@ -27,7 +27,8 @@ class Viewer(object):
         #signal = sp.DESTester.readDataBlock(value, 100, 2)
         #print(signal.amplifier[0][16])
         print("quote received: {}".format(value))
-
+        while 1:
+            print("")
         #with open('{0}.txt'.format(symbol), 'a') as myfile:
         #    myfile.write("{0}: {1}.{2}: {3}".format(time.time(), market, symbol, value))
 
@@ -51,7 +52,7 @@ class Viewer(object):
 
 
 def main():
-    viewer = Viewer()
+    viewer = Viewer2()
     with Pyro4.Daemon() as daemon:
         daemon.register(viewer)
         aggregator = Pyro4.Proxy("PYRONAME:example.stockquote.aggregator")

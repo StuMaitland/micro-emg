@@ -23,7 +23,6 @@ class StockMarket(object):
         quotes = {}
         buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
         des.resetBuffer()
-        print("data generated")
 
         parsed=des.readDataBlock(buffer,sampleLength,numDataStreams)
         #print(parsed)
@@ -33,7 +32,10 @@ class StockMarket(object):
 
         #print("new quotes generated for {0} in {1} seconds: {2}".format(self.name, elapsed,buffer[0:50]))
         for aggregator in self.aggregators:
-            aggregator.quotes(self.name, quotes)
+            try:
+                aggregator.quotes(self.name, quotes)
+            except:
+                pass
 
     @Pyro4.expose
     def listener(self, aggregator):
@@ -46,8 +48,8 @@ class StockMarket(object):
 
     def run(self, sampleLength, numDataStreams,des):
         def generate_symbols():
-            startTime=time.clock()
-            timer=0
+            #startTime=time.clock()
+            #timer=0
             while 1:
                 starttime = time.time()
                 self.generate(sampleLength, numDataStreams,des)
