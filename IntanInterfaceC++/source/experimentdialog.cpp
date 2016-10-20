@@ -55,6 +55,7 @@ ExperimentDialog::ExperimentDialog(QWidget *parent, SignalProcessor *signalProce
         forceLevelEdit = new QLineEdit(QString::number(ExperimentDetails::getForceLevel()));
         needleIdEdit = new QLineEdit(ExperimentDetails::getNeedleId());
         adcBoardEdit = new QLineEdit(QString::number(ExperimentDetails::getadcBoard()));
+        numberChannelsEdit = new QLineEdit(QString::number(ExperimentDetails::getNumChannels()));
         subjectEdit  = new QLineEdit(ExperimentDetails::getSubjectName());
         locationEdit = new QLineEdit(ExperimentDetails::getLocation());
         pathEdit     = new QLineEdit(ExperimentDetails::getPath());
@@ -63,6 +64,7 @@ ExperimentDialog::ExperimentDialog(QWidget *parent, SignalProcessor *signalProce
     }else{
         forceLevelEdit = new QLineEdit("10");
         needleIdEdit = new QLineEdit("64CH-00");
+        numberChannelsEdit = new QLineEdit("64");
         adcBoardEdit = new QLineEdit("1");
         subjectEdit  = new QLineEdit("");
         locationEdit = new QLineEdit("RVI");
@@ -77,6 +79,11 @@ ExperimentDialog::ExperimentDialog(QWidget *parent, SignalProcessor *signalProce
     QHBoxLayout *newRecordingLayout = new QHBoxLayout;
     newRecordingLayout->addWidget(new QLabel(tr("Start new Recording")));
     newRecordingLayout->addStretch(1);
+
+    QHBoxLayout *numChBoardLayout = new QHBoxLayout;
+    numChBoardLayout->addWidget(new QLabel(tr("Channels #:     ")));
+    numChBoardLayout->addWidget(numberChannelsEdit);
+    numChBoardLayout->addStretch(1);
 
     QHBoxLayout *adcBoardLayout = new QHBoxLayout;
     adcBoardLayout->addWidget(new QLabel(tr("ADC Board ID:  ")));
@@ -131,6 +138,7 @@ ExperimentDialog::ExperimentDialog(QWidget *parent, SignalProcessor *signalProce
 
     QVBoxLayout *boxLayout1 = new QVBoxLayout;
     boxLayout1->addLayout(newRecordingLayout);
+    boxLayout1->addLayout(numChBoardLayout);
     boxLayout1->addLayout(adcBoardLayout);
     boxLayout1->addWidget(runImpedenceCheckBox);
 
@@ -271,6 +279,10 @@ double ExperimentDialog::getForceLevel(){
 
 int ExperimentDialog::getTotalTime(){
     return timeEdit->text().toInt();
+}
+
+int ExperimentDialog::getNumChannels(){
+    return numberChannelsEdit->text().toInt();
 }
 
 bool ExperimentDialog::checkDouble(QString value){

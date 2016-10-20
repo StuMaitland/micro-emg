@@ -43,7 +43,8 @@ HEADERS       = \
     mvcview.h \
     datastreamlistener.h \
     forcelevelview.h \
-    summaryview.h
+    summaryview.h \
+    needle.h
 
 SOURCES       = main.cpp \
     okFrontPanelDLL.cpp \
@@ -81,7 +82,8 @@ SOURCES       = main.cpp \
     experimentdetails.cpp \
     mvcview.cpp \
     forcelevelview.cpp \
-    summaryview.cpp
+    summaryview.cpp \
+    needle.cpp
     
 RESOURCES     = RHD2000interface.qrc
 

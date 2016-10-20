@@ -4252,7 +4252,7 @@ void MainWindow::runExperiment()
                                      experimentDialog.getTotalTime(),experimentDialog.getLocation(),
                                      experimentDialog.getSubjectName(),experimentDialog.getMuscle(),
                                      experimentDialog.getRecordingID(),experimentDialog.getPath(),
-                                     experimentDialog.getAUX());
+                                     experimentDialog.getAUX(),experimentDialog.getNumChannels());
 
     lastMVC = experimentDialog.getMVC();
 

@@ -12,6 +12,7 @@ QString ExperimentDetails::muscle="";
 QString ExperimentDetails::experimentID="";
 QString ExperimentDetails::path="";
 int ExperimentDetails::adcBoard=0;
+int ExperimentDetails::numChannels=64;
 
 QString ExperimentDetails::getDataFolder(){
     return ExperimentDetails::dataFolder;
@@ -56,10 +57,14 @@ int ExperimentDetails::getadcBoard(){
     return adcBoard;
 }
 
+int ExperimentDetails::getNumChannels(){
+    return numChannels;
+}
+
 void ExperimentDetails::newExperiment(QString needleId,QString dataFolder,double MVC,
                                       double forceLevel,int totalTime,QString location,
                                       QString subjectName, QString muscle,QString experimentID,
-                                      QString path,int adc)
+                                      QString path,int adc,int numChannels)
 {
     ExperimentDetails::needleId=needleId;
     ExperimentDetails::dataFolder=dataFolder;
@@ -72,6 +77,7 @@ void ExperimentDetails::newExperiment(QString needleId,QString dataFolder,double
     ExperimentDetails::experimentID=experimentID;
     ExperimentDetails::path=path;
     ExperimentDetails::adcBoard=adc;
+    ExperimentDetails::numChannels= numChannels;
 }
 
 int ExperimentDetails::saveExperiment(QString fname){
@@ -91,6 +97,7 @@ int ExperimentDetails::saveExperiment(QString fname){
      outStream << "Subject Name:"<<getSubjectName()<<"\r\n";
      outStream << "Muscle:"<<getMuscle()<<"\r\n";
      outStream << "Recording ID:"<<getExperimentID()<<"\r\n";
+     outStream << "Number of Channels:"<<getNumChannels()<<"\r\n";
      file.close();
      return 1;
 }

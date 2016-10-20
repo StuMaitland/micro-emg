@@ -33,7 +33,7 @@ public:
     QLineEdit *locationEdit;
     QLineEdit *pathEdit;
     QLineEdit *recordingIdEdit;
-
+    QLineEdit *numberChannelsEdit;
     QComboBox *muscleCBox;
 
     bool getImpedenceState();
@@ -44,6 +44,7 @@ public:
     double getForceLevel();
     int getTotalTime();
     int getAUX();
+    int getNumChannels();
     QString getSubjectName();
     QString getLocation();
     QString getPath();

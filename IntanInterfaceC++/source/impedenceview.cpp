@@ -7,12 +7,12 @@
 #include "globalconstants.h"
 
 #include "qcustomplot.h"
-
+#include "experimentdetails.h"
 #include <iostream>
 #include "datasummary.h"
 #include "stats.h"
 #include <math.h>
-
+#include "needle.h"
 
 using namespace std;
 
@@ -252,7 +252,10 @@ QVector<double> ImpedanceView::getCSVData(QString fname){
                result<<log10(list.at(4).toDouble());//the log10 impedance value
        }
        file.close();
-    }else{
+
+       result = Needle::orderChannels(result);
+
+       }else{
         cout<<"File did not open!"<<endl;
     }
     return result;

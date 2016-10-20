@@ -16,7 +16,7 @@ public:
     static void newExperiment(QString needleId,QString dataFolder,double MVC,
                               double forceLevel,int totalTime,QString location,
                               QString subjectName, QString muscle,QString experimentID,
-                              QString path,int adc);
+                              QString path,int adc,int numChannels);
     static int saveExperiment(QString fname);
 
     static QString getNeedleId();
@@ -30,6 +30,7 @@ public:
     static QString getExperimentID();
     static QString getPath();
     static int getadcBoard();
+    static int getNumChannels();
 private:
     ExperimentDetails();
 
@@ -44,7 +45,7 @@ private:
     static QString experimentID;
     static QString path;
     static int adcBoard;
-
+    static int numChannels;
     ExperimentDetails(ExperimentDetails const&) = delete;
     void operator=(ExperimentDetails const&) = delete;
 };
