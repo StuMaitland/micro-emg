@@ -1,4 +1,4 @@
-import SignalProcessor
+from sp import SignalProcessor
 import numpy as np
 import matplotlib.pyplot as plt
 

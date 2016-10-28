@@ -26,7 +26,11 @@ class StockMarket(object):
 
         parsed=des.readDataBlock(buffer,sampleLength,numDataStreams)
         #print(parsed)
-        listed=parsed.amplifier.tolist()
+        volts=des.bytesToVolts(parsed.amplifier)
+        # Need to convert to list as Pyro doesn't like Numpy arrays for serialisation
+        listed=volts.tolist()
+
+        #Get the 64 channels, with 32 in each stream
         quotes.update(dict(zip(xrange(0,32),listed[0][0:32])))
         quotes.update(dict(zip(xrange(32, 64), listed[1][0:32])))
 

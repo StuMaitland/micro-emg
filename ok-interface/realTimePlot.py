@@ -30,7 +30,7 @@ des.setSampleFrequency(28,25)
 des.setCableDelay("PortA",5)
 
 numChannels=32*numDataStreams
-queue = [None] * 1000
+queue = [None] * 2000
 dataSize = des.dataBlockSize(numDataStreams) * sampleLength
 archive = [[None] for i in range(numChannels)]
 
@@ -44,9 +44,9 @@ plt.ylim([8000,8200])
 plt.xlim([0,len(queue)])
 
 
-for stream in xrange(0,2):
-    for channel in xrange(0,32):
-        for t in xrange(0, 50):
+for stream in xrange(1,2):
+    for channel in xrange(31,32):
+        for t in xrange(0, 50000):
             # Collect data from the USB Buffer- supply size in bytes and duration of sample in time interval
             buffer = des.collectDataFromPipeOut(sampleLength, numDataStreams)
 

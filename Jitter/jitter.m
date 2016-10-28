@@ -39,12 +39,12 @@ plot(MCD(2:end),'+--','LineWidth',2)
 %%
 clear clusterFigure
 paintDelay=0;
-runGMMClusteirng
+%runGMMClusteirng
 
 %% Jitter Histogram
-
-assignedColor=jiiterHistogram(MCD(2:end));
-assignedColor=[[0 0 1];assignedColor];
+recordMovie=0;
+%assignedColor=jiiterHistogram(MCD(2:end));
+%assignedColor=[[0 0 1];assignedColor];
 clear clusterFigure
 paintDelay=0;
-runGMMWithJitterColorCode
+%runGMMWithJitterColorCode

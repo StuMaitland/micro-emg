@@ -39,3 +39,5 @@ ok-interface/config.h
 ok-interface/pycallgraph.png
 
 PyRO Test/NIEB.txt
+
+*.mat

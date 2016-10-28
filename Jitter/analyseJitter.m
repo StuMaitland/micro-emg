@@ -1,3 +1,7 @@
+
+nfb = size(bestCluster.centers,2);
+Aest= rec.Aest;
+
 peakTimes = zeros(size(MU,1),nfb);
 segments  = zeros(size(MU,1),nfb,2000);
 for d=1:size(MU,1)
