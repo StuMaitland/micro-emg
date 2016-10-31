@@ -9,6 +9,7 @@ import string
 from sp import DESTester as sp
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 
 class StockMarket(object):
@@ -33,11 +34,13 @@ class StockMarket(object):
         #Get the 64 channels, with 32 in each stream
         quotes.update(dict(zip(xrange(0,32),listed[0][0:32])))
         quotes.update(dict(zip(xrange(32, 64), listed[1][0:32])))
+        timestamps = [time.time() + (sample / 20000) for sample in xrange(0, len(quotes[0]))]
+
 
         #print("new quotes generated for {0} in {1} seconds: {2}".format(self.name, elapsed,buffer[0:50]))
         for aggregator in self.aggregators:
             try:
-                aggregator.quotes(self.name, quotes)
+                aggregator.quotes(self.name, quotes, timestamps)
             except:
                 pass
 

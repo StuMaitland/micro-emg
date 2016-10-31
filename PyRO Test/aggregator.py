@@ -20,13 +20,13 @@ class Aggregator(object):
         print("aggregator gets a new viewer, for symbols:", symbols)
         self.viewers[viewer] = symbols
 
-    def quotes(self, market, stockquotes):
+    def quotes(self, market, stockquotes, timestamps):
         for symbol, value in stockquotes.items():
             for viewer, symbols in self.viewers.items():
                 if symbol in symbols:
                     #viewer.quote(market, symbol, value)
                     futurecall=Future(viewer.quote)
-                    futurecall(market, symbol, value)
+                    futurecall(market, symbol, value, timestamps)
                     #viewer.realTimePlot()
 
 
