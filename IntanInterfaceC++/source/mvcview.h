@@ -15,8 +15,8 @@ class MVCView :public QDialog,DataStreamListener
 public:
     explicit MVCView(QWidget *parent, SignalProcessor *inSignalProcessor);
     static const int _TEST_TIME;//in seconds
-    static const double _BASE_LINE;
-    static const double _MAX_VOLT;//maximum voltage possible as an input from the load cell
+    static double _BASE_LINE;
+    static double _MAX_VOLT;//maximum voltage possible as an input from the load cell
     static const double _MIN_VOLT;
     static const double _MAX_KG;
     static const double _TOLERANCE; //tolerance in the transformation from volts to KG
@@ -44,6 +44,8 @@ private:
     int aux=0;//0-7
     int maxDrawing = 495;
     int minDrawing = 20;
+    int waitingTimes=0;
+    bool waiting =0;
     void clearView();
     void countDown();
     void updateForceView(double force);

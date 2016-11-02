@@ -33,6 +33,9 @@ ExperimentDialog::ExperimentDialog(QWidget *parent, SignalProcessor *signalProce
     runImpedenceCheckBox = new QCheckBox(tr("Run Impedence Test"));
     runImpedenceCheckBox->setChecked(true);
 
+    adaptiveExpCheckBox = new QCheckBox(tr("Run Adaptive Experiment"));
+    adaptiveExpCheckBox->setChecked(false);
+
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     QPushButton* runMVCButton = new QPushButton(tr("&Run MVC"));
     QPushButton* getPathButton = new QPushButton(tr("&Change"));
@@ -141,7 +144,7 @@ ExperimentDialog::ExperimentDialog(QWidget *parent, SignalProcessor *signalProce
     boxLayout1->addLayout(numChBoardLayout);
     boxLayout1->addLayout(adcBoardLayout);
     boxLayout1->addWidget(runImpedenceCheckBox);
-
+    boxLayout1->addWidget(adaptiveExpCheckBox);
     boxLayout1->addLayout(subjectLayout);
     boxLayout1->addLayout(locationLayout);
     boxLayout1->addLayout(pathLayout);
@@ -278,6 +281,9 @@ double ExperimentDialog::getForceLevel(){
 }
 
 int ExperimentDialog::getTotalTime(){
+    if (adaptiveExpCheckBox->isChecked()){
+        return 5;//1 mintue 10%, 1 minute 20%, 1 minute 50%, 1 minute 20%, 1 minute 10%
+    }
     return timeEdit->text().toInt();
 }
 

@@ -1,4 +1,5 @@
 #include "experimentdetails.h"
+#include "mvcview.h"
 #include <QTextStream>
 
 QString ExperimentDetails::needleId="";
@@ -61,6 +62,10 @@ int ExperimentDetails::getNumChannels(){
     return numChannels;
 }
 
+int ExperimentDetails::getForceBaseline(){
+    return MVCView::_BASE_LINE;
+}
+
 void ExperimentDetails::newExperiment(QString needleId,QString dataFolder,double MVC,
                                       double forceLevel,int totalTime,QString location,
                                       QString subjectName, QString muscle,QString experimentID,
@@ -98,6 +103,7 @@ int ExperimentDetails::saveExperiment(QString fname){
      outStream << "Muscle:"<<getMuscle()<<"\r\n";
      outStream << "Recording ID:"<<getExperimentID()<<"\r\n";
      outStream << "Number of Channels:"<<getNumChannels()<<"\r\n";
+     outStream << "Force Baseline:"<<getForceBaseline()<<"\r\n";
      file.close();
      return 1;
 }

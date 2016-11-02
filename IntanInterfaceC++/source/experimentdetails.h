@@ -31,6 +31,7 @@ public:
     static QString getPath();
     static int getadcBoard();
     static int getNumChannels();
+    static int getForceBaseline();
 private:
     ExperimentDetails();
 

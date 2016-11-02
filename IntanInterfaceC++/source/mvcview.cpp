@@ -80,6 +80,7 @@ void MVCView::paintEvent(QPaintEvent * /* event */)
 void MVCView::countDown(){
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(countDownTimer()));
+    MainWindow::getInstance().runInterfaceBoard();
     timer->start(1000);
 }
 
@@ -102,15 +103,16 @@ void MVCView::countDownTimer(){
     countDownCurrent--;
     update();
     if(countDownCurrent<0){
+        waiting=0;
+        MVCView::_BASE_LINE = MVCView::_BASE_LINE/waitingTimes;
         timer->stop();
-        MainWindow::getInstance().runInterfaceBoard();
     }
 
 }
 
 const int MVCView::_TEST_TIME=30;
-const double MVCView::_BASE_LINE=1.65;
-const double MVCView::_MAX_VOLT=3.3;
+double MVCView::_BASE_LINE=0;
+double MVCView::_MAX_VOLT=3.3;
 const double MVCView::_MIN_VOLT=0;
 const double MVCView::_TOLERANCE=0.0155;
 const double MVCView::_MAX_KG=53.23;
@@ -126,6 +128,16 @@ void MVCView::updateData(int blockNumber){
 
     int length = Rhd2000DataBlock::getSamplesPerDataBlock() * blockNumber;
 
+    if(waiting){
+        waitingTimes++;
+        double meanBaseline=0;
+        for(int i=0;i<length;i++){
+          meanBaseline+=signalProcessor->boardAdc.at(this->aux).at(i);
+        }
+        meanBaseline= meanBaseline/length;
+        MVCView::_BASE_LINE+=meanBaseline;
+        return;
+    }
     double meanKg=0;
     for(int i=0;i<length;i++){
 

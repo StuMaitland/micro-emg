@@ -56,6 +56,7 @@ class HelpDialogNotchFilter;
 class HelpDialogFastSettle;
 class WaitForTriggerDialog;
 class ForceLevelView;
+class AdaptiveForceLevelView;
 class SummaryView;
 
 using namespace std;
@@ -93,6 +94,7 @@ public:
     static void removeDataStreamListener(DataStreamListener * listener);
 
     void startRecordExperiment();
+    void startAdaptiveRecordExperiment();
 
 public slots:
     void runInterfaceBoard();
@@ -398,7 +400,7 @@ private:
     static int dataListenersIds;
 
     ForceLevelView* forcelevelView;
-
+    AdaptiveForceLevelView* adaptiveForcelevelView;
     double lastMVC=-1;
     bool runningExperiment=false;
 };

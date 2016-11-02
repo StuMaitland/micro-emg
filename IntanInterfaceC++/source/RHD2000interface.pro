@@ -44,7 +44,8 @@ HEADERS       = \
     datastreamlistener.h \
     forcelevelview.h \
     summaryview.h \
-    needle.h
+    needle.h \
+    adaptiveforcelevelview.h
 
 SOURCES       = main.cpp \
     okFrontPanelDLL.cpp \
@@ -83,7 +84,8 @@ SOURCES       = main.cpp \
     mvcview.cpp \
     forcelevelview.cpp \
     summaryview.cpp \
-    needle.cpp
+    needle.cpp \
+    adaptivefocelevelview.cpp
     
 RESOURCES     = RHD2000interface.qrc
 

@@ -22,6 +22,7 @@ public:
      explicit ExperimentDialog(QWidget *parent, SignalProcessor *inSignalProcessor,double MVC);
 
     QCheckBox *runImpedenceCheckBox;
+    QCheckBox *adaptiveExpCheckBox;
     QDialogButtonBox *buttonBox;
     QButtonGroup *buttonGroup;
     QLineEdit *timeEdit;

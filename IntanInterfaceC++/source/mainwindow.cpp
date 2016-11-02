@@ -63,6 +63,7 @@
 #include "impedenceview.h"
 #include "experimentdetails.h"
 #include "forcelevelview.h"
+#include "adaptiveforcelevelview.h"
 #include "summaryview.h"
 
 // Main Window of RHD2000 USB interface application.
@@ -4246,6 +4247,7 @@ void MainWindow::runExperiment()
             impView.exec();
         }
     }
+
     ExperimentDetails::newExperiment(experimentDialog.getNeedleId(),
                                      experimentDialog.getExperimentFolder(),experimentDialog.getMVC(),
                                      experimentDialog.getForceLevel(),
@@ -4267,7 +4269,6 @@ void MainWindow::startRecordExperiment(){
     runExperimentButton->setEnabled(false);
     dacSetChannel();
     QTimer::singleShot(ExperimentDetails::getTotalTime()*60000, this, SLOT(endRecording()));
-
     forcelevelView=new ForceLevelView(signalProcessor);
     forcelevelView->setAUX(ExperimentDetails::getadcBoard());
     forcelevelView->setMVC(ExperimentDetails::getMVC());
@@ -4276,6 +4277,22 @@ void MainWindow::startRecordExperiment(){
     recordInterfaceBoard();
 
     forcelevelView->close();
+
+}
+
+void MainWindow::startAdaptiveRecordExperiment(){
+
+    runExperimentButton->setEnabled(false);
+    dacSetChannel();
+    QTimer::singleShot(ExperimentDetails::getTotalTime()*60000, this, SLOT(endRecording()));
+    adaptiveForcelevelView=new AdaptiveForceLevelView(signalProcessor);
+    adaptiveForcelevelView->setAUX(ExperimentDetails::getadcBoard());
+    adaptiveForcelevelView->setMVC(ExperimentDetails::getMVC());
+    adaptiveForcelevelView->show();
+    runningExperiment=true;
+    recordInterfaceBoard();
+
+    adaptiveForcelevelView->close();
 
 }
 
